@@ -1,0 +1,37 @@
+# https://taskfile.dev
+
+version: "2"
+
+vars:
+  config_path: ./debian-10.3.0.json
+
+  # Configure your var paths here with the `-var-file="./path/file.json" flag`
+  # or any other packer options you need to pass into commands
+  packer_args: '-var-file="./config.json"'
+
+  debian_10_3_iso_name: debian-10.3.0-server-amd64.iso
+  debian_10_3_iso_url: http://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-10.3.0-amd64-netinst.iso
+
+tasks:
+  init:
+    cmds:
+      - cp ./example-vars.json ./config.json
+    status:
+      - test -f config.json
+
+  build:
+    cmds:
+      - packer build {{.packer_args}} {{.config_path}}
+
+  validate:
+    cmds:
+      - packer validate {{.packer_args}} {{.config_path}}
+
+  cleanup-isos:
+    cmds:
+      - rm -rf ./isos
+
+  debian-10-iso:
+    cmds:
+      - mkdir -p ./isos
+      - curl -L -C - -o ./isos/{{.debian_10_3_iso_name}} {{.debian_10_3_iso_url}}

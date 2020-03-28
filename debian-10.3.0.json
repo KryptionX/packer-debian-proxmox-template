@@ -1,0 +1,114 @@
+{
+	"builders": [
+		{
+			"type": "proxmox",
+			"proxmox_url": "https://{{user `proxmox_host`}}:8006/api2/json",
+			"insecure_skip_tls_verify": true,
+			"username": "{{user `proxmox_api_user`}}",
+			"password": "{{user `proxmox_api_password`}}",
+			"vm_name": "{{user `template_name`}}",
+			"vm_id": "{{user `vmid`}}",
+			"node": "{{user `proxmox_node_name`}}",
+			"cores": "{{user `cores`}}",
+			"sockets": "{{user `sockets`}}",
+			"memory": "{{user `memory`}}",
+			"os": "l26",
+			"network_adapters": [
+				{
+					"model": "virtio",
+					"bridge": "vmbr0"
+				}
+			],
+			"disks": [
+				{
+					"type": "scsi",
+					"disk_size": "{{user `disk_size`}}",
+					"storage_pool": "{{user `datastore`}}",
+					"storage_pool_type": "{{user `datastore_type`}}",
+					"format": "raw",
+					"cache_mode": "none"
+				}
+			],
+			"ssh_timeout": "90m",
+			"ssh_password": "{{user `ssh_password`}}",
+			"ssh_username": "{{user `ssh_username`}}",
+			"qemu_agent": true,
+			"unmount_iso": true,
+			"iso_file": "{{user `iso`}}",
+			"http_directory": "./http",
+			"template_description": "{{user `template_description`}}",
+			"boot_wait": "5s",
+			"boot_key_interval": "65ms",
+			"boot_command": [
+				"<esc><wait>",
+				"install ",
+				"initrd=/install/initrd.gz ",
+				"auto-install/enable=true ",
+				"debconf/priority=critical ",
+				"preseed/url=http://{{.HTTPIP}}:{{.HTTPPort}}/{{user `preseed_file`}} ",
+				"locale=en_US.UTF-8 ",
+				"kbd-chooser/method=us ",
+				"netcfg/get_hostname={{user `hostname`}} ",
+				"netcfg/get_domain={{user `domain`}} ",
+				"passwd/username={{user `ssh_username`}} ",
+				"passwd/user-fullname={{user `ssh_fullname`}} ",
+				"passwd/user-password={{user `ssh_password`}} ",
+				"passwd/user-password-again={{user `ssh_password`}} ",
+				"keyboard-configuration/xkb-keymap=us<wait> ",
+				"console-setup/ask_detect=false<wait> ",
+				"debconf/frontend=noninteractive<wait> ",
+				"console-keymaps-at/keymap=us ",
+				"fb=false ",
+				"grub-installer/bootdev=/dev/sda ",
+				"<enter><wait>"
+			]
+		}
+	],
+	"provisioners": [
+		{
+			"pause_before": "8s",
+			"environment_vars": [
+				"DEBIAN_FRONTEND=noninteractive",
+				"HOME_DIR=/home/johnny"
+			],
+			"execute_command": "echo 'packer' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+			"expect_disconnect": true,
+			"type": "shell",
+			"scripts": [
+				"./scripts/update.sh",
+				"./scripts/networking.sh",
+				"./scripts/systemd.sh",
+				"./scripts/keys.sh",
+				"./scripts/repos.sh",
+				"./scripts/ssh.sh",
+				"./scripts/cleanup.sh"
+			]
+		},
+		{
+			"type": "file",
+			"source": "./scripts/user/usersetup.sh",
+			"destination": "/tmp/usersetup.sh"
+		},
+		{
+			"pause_before": "2s",
+			"type": "shell",
+			"execute_command": "echo 'packer' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+			"script": "./scripts/move-files.sh"
+		}
+	],
+	"post-processors": [
+		{
+			"type": "shell-local",
+			"inline": [
+				"sudo su -",
+				"qm set {{user `vmid`}} --scsihw virtio-scsi-pci",
+				"qm set {{user `vmid`}} --ide2 {{user `datastore`}}:cloudinit",
+				"qm set {{user `vmid`}} --boot c --bootdisk scsi0",
+				"qm set {{user `vmid`}} --ciuser {{user `ciuser`}}",
+				"qm set {{user `vmid`}} --vga std",
+				"qm set {{user `vmid`}} --ipconfig0 {{user `ipconfig`}}",
+				"qm set {{user `vmid`}} --sshkeys {{user `sshkeys`}}"
+			]
+		}
+	]
+}
