@@ -1,5 +1,5 @@
 {
-	"proxmox_host": "10.10.25.120",
+	"proxmox_host": "CHANGE",
 	"proxmox_node_name": "CHANGE",
 	"proxmox_api_user": "root@pam",
 	"proxmox_api_password": "CHANGE",
