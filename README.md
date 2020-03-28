@@ -1,9 +1,12 @@
 # Notes
 
 #### mkpasswd for root PW in preseed.cfg
+```
 printf '$USER_PASSWORD' | mkpasswd -s -S '$CREATE_RANDOM_SALT_STRING' -m sha-512
+```
 
-Append output into preseed line 24
+Enter desired Password in $USER_PASSWORD. Enter desired hash salt in $CREATE_RANDOM_SALT_STRING. 
+Append output into `preseed.cfg` line 24.
 
 # Packer debian proxmox template
 
