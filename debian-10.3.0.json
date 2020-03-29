@@ -106,8 +106,7 @@
 				"qm set {{user `vmid`}} --boot c --bootdisk scsi0",
 				"qm set {{user `vmid`}} --ciuser {{user `ciuser`}}",
 				"qm set {{user `vmid`}} --vga std",
-				"qm set {{user `vmid`}} --ipconfig0 {{user `ipconfig`}}",
-				"qm set {{user `vmid`}} --sshkeys {{user `sshkeys`}}"
+				"qm set {{user `vmid`}} --ipconfig0 {{user `ipconfig`}}"
 			]
 		}
 	]
