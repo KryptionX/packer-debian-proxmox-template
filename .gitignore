@@ -1,9 +1,11 @@
 .vscode
 
+# Directories
 packer_cache
-
 isos
+old
 
-vars
-
+# Files
 config.json
+*pkrvars.hcl
+
